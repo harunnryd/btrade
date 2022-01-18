@@ -1,0 +1,24 @@
+vendor/
+
+bin/
+
+.idea/
+*.out
+*.log
+*.tmp
+*.bin
+*.rdb
+.DS_STORE
+
+# config file
+params/*.toml
+params/.env
+params/*.json
+
+# executables & libs
+btrade
+*.exe
+*.so
+*.dll
+*.test
+*.dylib
