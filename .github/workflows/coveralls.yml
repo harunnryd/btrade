@@ -1,0 +1,45 @@
+name: Test Coverage
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v2
+
+      - name: Configure Git for private modules
+        env:
+          USER: ${{ secrets.GH_USER }}
+          TOKEN: ${{ secrets.GH_TOKEN }}
+        run: git config --global url."https://${USER}:${TOKEN}@github.com".insteadOf "https://github.com"
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.x
+
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Run Unit tests
+        run: |-
+          find . -name "*.toml.sample" | xargs -I{} sh -c 'cp "$1" "${1%.*}"' -- {}
+          find . -name "*.env.sample" | xargs -I{} sh -c 'cp "$1" "${1%.*}"' -- {}
+          find . -name "*.json.sample" | xargs -I{} sh -c 'cp "$1" "${1%.*}"' -- {}
+          go test -race -covermode=atomic -coverprofile=profile.cov ./... || true
+      - name: Send coverage
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |-
+          GO111MODULE=off go get github.com/mattn/goveralls
+          $(go env GOPATH)/bin/goveralls -coverprofile=profile.cov -service=github

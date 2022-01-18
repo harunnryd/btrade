@@ -1,0 +1,71 @@
+name: Build-Test
+
+on:
+  pull_request:
+    branches:
+      - master
+
+env:
+  COVERAGE_THRESHOLD: 0  # set unit test coverage threshold percentage. Reject PR if coverage is blow threshold.
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.x
+
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Build
+        run: go build -v .
+
+      - name: Run Unit tests
+        id: unit-test
+        run: |-
+          find . -name "*.toml.sample" | xargs -I{} sh -c 'cp "$1" "${1%.*}"' -- {}
+          find . -name "*.env.sample" | xargs -I{} sh -c 'cp "$1" "${1%.*}"' -- {}
+          find . -name "*.json.sample" | xargs -I{} sh -c 'cp "$1" "${1%.*}"' -- {}
+          go test -race -covermode=atomic -coverprofile=coverage-reports.out ./...
+          echo "::set-output name=totalcoverage::$(go tool cover -func coverage-reports.out | grep total | awk '{print substr($3, 1, length($3)-1)}')"
+      - name: Print PR comment if unit test below threshold
+        if: steps.unit-test.outputs.totalcoverage < env.COVERAGE_THRESHOLD
+        uses: KeisukeYamashita/create-comment@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          unique: true
+          check-only-first-line: true
+          comment: |
+            ##  Unit Test Coverage
+            Current coverage: ${{ steps.unit-test.outputs.totalcoverage }}%
+            Threshold : ${{ env.COVERAGE_THRESHOLD }}%
+            Status : ❌ PR blocked! Your coverage is lower than threshold.
+            > _you can update the threshold on `.github/workflows/build.yaml`_
+      - name: Failing job if unit test below threshold
+        if: steps.unit-test.outputs.totalcoverage < env.COVERAGE_THRESHOLD
+        run: |-
+          echo "::error ::Total unit test coverage is below threshold"
+          exit 1
+      - name: Report existing coverage to PR comment if unit test pass threshold
+        uses: KeisukeYamashita/create-comment@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          unique: true
+          check-only-first-line: true
+          comment: |
+            ##  Unit Test Coverage
+            Current coverage: ${{ steps.unit-test.outputs.totalcoverage }}%
+            Threshold : ${{ env.COVERAGE_THRESHOLD }}%
+            Status : ✅ Passed. Keep improving your coverage.
+            > _you can update the threshold on `.github/workflows/build.yaml`_
