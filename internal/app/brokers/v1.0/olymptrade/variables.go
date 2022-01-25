@@ -2,7 +2,6 @@ package olymptrade
 
 import (
 	"fmt"
-	"time"
 )
 
 const (
@@ -11,20 +10,11 @@ const (
 	ColorRed   = "\x1b[91m"
 	ColorGreen = "\x1b[32m"
 	ColorBlue  = "\x1b[94m"
-	ColorGray  = "\x1b[90m"
 
 	messageCandleStream = "[{\"t\":2,\"e\":10,\"uuid\":\"%s\",\"d\":[{\"pair\":\"%s\",\"size\":60,\"to\":%d,\"solid\":true}]}]"
 	messageBuy          = "[{\"t\":2,\"e\":23,\"uuid\":\"%s\",\"d\":[{\"amount\":%d,\"dir\":\"%s\",\"pair\":\"%s\",\"cat\":\"digital\",\"pos\":0,\"source\":\"platform\",\"account_id\":%s,\"group\":\"%s\",\"timestamp\":%d,\"risk_free_id\":null,\"duration\":60}]}]"
 )
 
-var (
-	date    []time.Time
-	opening []float64
-	closing []float64
-	high    []float64
-	low     []float64
-	volume  []int64
-)
 
 func red(s string) string {
 	return fmt.Sprintf("%s%s%s", ColorRed, s, ColorDefault)
@@ -36,8 +26,4 @@ func green(s string) string {
 
 func blue(s string) string {
 	return fmt.Sprintf("%s%s%s", ColorBlue, s, ColorDefault)
-}
-
-func gray(s string) string {
-	return fmt.Sprintf("%s%s%s", ColorGray, s, ColorDefault)
 }

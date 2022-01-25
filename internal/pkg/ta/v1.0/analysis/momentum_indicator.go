@@ -31,3 +31,29 @@ func (df *DataFrame) Rsi() ([]float64, []float64) {
 
 	return rs, rsi
 }
+
+// IsSmaShowUpTrend ...
+func (df *DataFrame) IsSmaShowUpTrend() bool {
+	closes := make([]float64, len(df.Series))
+
+	for i := 0; i < len(df.Series); i++ {
+		closes[i] = df.Series[i].Close
+	}
+
+	meanGains := Sma(10, closes)
+
+	return closes[len(closes)-1] > meanGains[len(meanGains)-1]
+}
+
+// IsSmaShowDownTrend ...
+func (df *DataFrame) IsSmaShowDownTrend() bool {
+	closes := make([]float64, len(df.Series))
+
+	for i := 0; i < len(df.Series); i++ {
+		closes[i] = df.Series[i].Close
+	}
+
+	meanGains := Sma(10, closes)
+
+	return closes[len(closes)-1] < meanGains[len(meanGains)-1]
+}
