@@ -1,0 +1,13 @@
+[redis_pool]
+is_enabled = true
+host = "localhost"
+port = 6379
+dial_connect_timeout = 5
+read_timeout = 5
+write_timeout = 5
+namespace = "2"
+max_idle = 5
+max_active = 1000
+idle_timeout ="30s"
+wait = true
+max_conn_lifetime = "0s"

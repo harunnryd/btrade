@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/harunnryd/btrade/cmd/worker"
 	"os"
 
 	"github.com/harunnryd/btrade/cmd/root"
@@ -24,6 +25,7 @@ var rootCmd = &cobra.Command{
 	},
 }
 
+// Execute ...
 func Execute(ctx context.Context, ctxCancel context.CancelFunc, eg *errgroup.Group, logger zerolog.Logger) {
 	root.App = appcontext.NewAppContext(ctx, ctxCancel, eg)
 	root.App.InitAppErrors(apperror.AppErrors...)
@@ -33,6 +35,17 @@ func Execute(ctx context.Context, ctxCancel context.CancelFunc, eg *errgroup.Gro
 	atexit.Add(root.App.CtxCancel)
 
 	cobra.OnInitialize(root.InitConfig)
+	cobra.OnInitialize(root.InitDependencies)
+
+	worker.App = appcontext.NewAppContext(ctx, ctxCancel, eg)
+	worker.App.InitAppErrors(apperror.AppErrors...)
+
+	_ = worker.App.InitLogger(logger)
+
+	atexit.Add(worker.App.CtxCancel)
+
+	cobra.OnInitialize(worker.InitConfig)
+	cobra.OnInitialize(worker.InitDependencies)
 
 	atexit.Add(root.Shutdown)
 
