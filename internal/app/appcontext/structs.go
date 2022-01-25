@@ -2,7 +2,10 @@ package appcontext
 
 import (
 	"context"
+	"github.com/sacOO7/gowebsocket"
+	"sync"
 
+	"github.com/gomodule/redigo/redis"
 	"github.com/harunnryd/btrade/internal/app/config"
 	"github.com/rs/zerolog"
 	"golang.org/x/sync/errgroup"
@@ -17,4 +20,8 @@ type AppContext struct {
 	Logger    zerolog.Logger
 	Config    config.Config
 	IsLive    bool
+
+	Olymptrade     gowebsocket.Socket
+	OlymptradeOnce sync.Once
+	RedisPool      *redis.Pool
 }

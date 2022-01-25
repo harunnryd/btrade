@@ -1,0 +1,18 @@
+[olymptrade]
+is_enabled = true
+host = ""
+header_user_agent = ""
+header_accept = "*/*"
+header_cookie = ""
+header_accept_language = "en-US,en;q=0.9,id;q=0.8"
+header_accept_encoding = "gzip, deflate, br"
+header_origin = "https://olymptrade-lid.com"
+header_sec_fetch_dest = "websocket"
+header_sec_fetch_mode = "websocket"
+header_sec_fetch_site = "same-site"
+header_pragma = "no-cache"
+header_cache_control = "no-cache"
+# pair can be CMDTY_X, ASIA_X, etc
+pair = "ASIA_X"
+account_mode = "demo"
+account_id = ""
