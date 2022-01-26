@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/alexeyco/simpletable"
 	"github.com/google/uuid"
 	"github.com/harunnryd/btrade/internal/pkg/ta/v1.0/analysis"
 	"github.com/harunnryd/btrade/internal/pkg/utils/loghelper"
 	"github.com/sacOO7/gowebsocket"
-	"os"
-	"strings"
-	"time"
 )
 
 // Service ...
@@ -26,10 +27,6 @@ func (s *Service) SetOptions(options Options) {
 
 // StartCandleStream ...
 func (s *Service) StartCandleStream(ctx context.Context) {
-	s.options.websocket.OnConnected = func(socket gowebsocket.Socket) {
-		loghelper.AddStr(ctx, "Connected to server")
-	}
-
 	s.options.websocket.OnConnectError = func(err error, socket gowebsocket.Socket) {
 		loghelper.AddErrAndStr(ctx, "Received connect error", err)
 		os.Exit(1)
@@ -78,33 +75,30 @@ func (s *Service) Analysis(ctx context.Context, df DataFrame) {
 
 	dir := directions[len(directions)-1]
 
-	s.consoleLog(s.options.pair, strings.ToUpper(s.convertDirection(dir)), summaries...)
+	s.consoleLog(s.options.pair, strings.ToUpper(s.convertDirection(dir)), directions, summaries)
 
 	s.options.emitter.Emit("act", ctx, s.convertDirection(dir))
 }
 
-func (s *Service) consoleLog(pair string, dir string, summaries ...string) {
+func (s *Service) consoleLog(pair string, dir string, directions []analysis.Action, summaries []string) {
 	table := simpletable.New()
 
 	r := []*simpletable.Cell{
 		{Align: simpletable.AlignRight, Text: fmt.Sprintf("%s", blue(time.Now().Format("2006-01-02 15:04:05")))},
 		{Align: simpletable.AlignRight, Text: fmt.Sprintf("%s", green(pair))},
 		{Align: simpletable.AlignRight, Text: fmt.Sprintf("%s", red(dir))},
+		{Align: simpletable.AlignRight, Text: fmt.Sprintf("%v", directions)},
 		{Align: simpletable.AlignRight, Text: fmt.Sprintf("%s", strings.Join(summaries, ","))},
 	}
 
 	table.Body.Cells = append(table.Body.Cells, r)
 
-	table.SetStyle(simpletable.StyleUnicode)
+	table.SetStyle(simpletable.StyleDefault)
 	table.Println()
 }
 
 // Buy ...
 func (s *Service) Buy(ctx context.Context, dir string) {
-	s.options.websocket.OnConnected = func(socket gowebsocket.Socket) {
-		loghelper.AddStr(ctx, "Connected to server")
-	}
-
 	s.options.websocket.OnConnectError = func(err error, socket gowebsocket.Socket) {
 		loghelper.AddErrAndStr(ctx, "Received connect error", err)
 		os.Exit(1)
